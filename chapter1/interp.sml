@@ -9,11 +9,20 @@ This filename is: interp.sml
 *)
 use "slp.sml";
 
+exception UnboundIdentifier
+
 type table = (id * int) list
 
-fun update(l: table, id: id,value: int): table = ((id, value)::l);
+val mtenv = []
 
-fun lookup (l: table, id: id): int =
+fun update(t: table, id: id,value: int): table = ((id, value)::t);
+
+fun lookup (t: table, id: id): int = 
+	case t of [] => 
+		raise UnboundIdentifier
+	| (firstID, firstNUM)::tail => 
+	if firstID = id then firstNUM 
+	else lookup(tail,id);
 (*
 fun interp
 
