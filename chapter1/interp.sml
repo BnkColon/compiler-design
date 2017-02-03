@@ -1,4 +1,6 @@
 (* 
+Book: Modern Compiler Implementation in ML
+
 Write an ML function interp : stm→unit that “interprets” a program in this language. 
 To write in a “functional” style – without [sml] assignment (:=) or arrays – maintain a 
 list of (variable,integer) pairs, and produce new versions of this list at each AssignStm.
@@ -32,12 +34,33 @@ fun lookup (table: table, id: id): int =
 	| (firstID, firstNUM)::theEnd => 
 	if firstID = id then firstNUM 
 	else lookup(theEnd,id);
-(*
-fun interp
-*)
 
-fun interpexp
-
+(* val interp = fn : stm -> unit *)
+fun interp s1 = ( interpStm( s1,nil ); () )
+	and
+	(* val interpExp = fn : exp * table -> int * table *)
+	  interpExp ( IdExp id, env ) = ( lookup( env, id ), env )
+	| interpExp ( NumExp n, env ) = ( n, env )
+	| interpExp ( OpExp ( e1, myop, e2 ), env ) =
+		let
+			val ( v1, env1 ) = interpExp ( e1, env )
+			val ( v2, env2 ) = interpExp ( e2, env1 )
+		in
+			case myop of
+				  Plus 	=> 	( v1 + v2, env2 )
+				| Minus => 	( v1 - v2, env2 )
+				| Times => 	( v1 * v2, env2 )
+				| Div 	=> 	( v1 div v2, env2 )
+		end
+	| interpExp ( EseqExp ( s1, e1 ), env ) =
+		let
+				val env1 = interpStm( s1, env )
+			in
+				interpExp( e1, env1 )
+			end	
+	and
+	(* val interpStm = fn : stm * (id * int) list -> table *) 
+	  interpStm ( _, env ) = env;
 
 (*
 fun interpstm
