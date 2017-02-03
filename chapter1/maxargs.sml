@@ -4,21 +4,10 @@ a straight line program as described in Chapter 1.
 See the assignment page (http://ccom.uprrp.edu/~humberto/pages/teaching/compilers2017/expressions.html) 
 for more details.
 
-This file name: slp.sml
+This file name: maxargs.sml
 *)
 
-type id = string
-
-datatype binop = Plus | Minus | Times | Div
-
-datatype stm = CompoundStm of stm * stm
-  | AssignStm of id * exp
-  | PrintStm of exp list
-
-  and exp = IdExp of id
-  | NumExp of int
-  | OpExp of exp * binop * exp
-  | EseqExp of stm * exp
+use "slp.sml";
 
 fun maxargs (PrintStm args) = Int.max(length (args), foldl Int.max 0 (List.map maxargs_exp args))
   | maxargs (AssignStm (_, e)) = maxargs_exp e
