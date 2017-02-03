@@ -5,29 +5,41 @@ list of (variable,integer) pairs, and produce new versions of this list at each 
 See the assignment page (http://ccom.uprrp.edu/~humberto/pages/teaching/compilers2017/interpreter.html)	for more details.
 	
 This filename is: interp.sml	
-
 *)
+
 use "slp.sml";
 
+(* Raise when lookup is searching 
+for an ID that is not in the table. *)
 exception UnboundIdentifier
 
+(* type table = (id * int) list *)
 type table = (id * int) list
 
+(* val mtenv = [] : 'a list *)
 val mtenv = []
 
-fun update(t: table, id: id,value: int): table = ((id, value)::t);
+(* Update the linked list. 
+	val update = fn : table * id * int -> table
+*)
+fun update(table: table, id: id,value: int): table = ((id, value)::table);
 
-fun lookup (t: table, id: id): int = 
-	case t of [] => 
-		raise UnboundIdentifier
-	| (firstID, firstNUM)::tail => 
+(* Searches down the Linked List. 
+	val lookup = fn : table * id -> int
+*)
+fun lookup (table: table, id: id): int = 
+	case table of [] => raise UnboundIdentifier
+	| (firstID, firstNUM)::theEnd => 
 	if firstID = id then firstNUM 
-	else lookup(tail,id);
+	else lookup(theEnd,id);
 (*
 fun interp
+*)
 
 fun interpexp
 
+
+(*
 fun interpstm
 
 fun interexplist*)

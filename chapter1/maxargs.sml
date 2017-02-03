@@ -9,10 +9,11 @@ This file name: maxargs.sml
 
 use "slp.sml";
 
+(* val maxargs = fn : stm -> int *)
 fun maxargs (PrintStm args) = Int.max(length (args), foldl Int.max 0 (List.map maxargs_exp args))
   | maxargs (AssignStm (_, e)) = maxargs_exp e
   | maxargs (CompoundStm (s1, s2)) = Int.max(maxargs s1, maxargs s2)
-  and maxargs_exp (IdExp _) = 0
+  and maxargs_exp (IdExp _) = 0 (* val maxargs_exp = fn : exp -> int*)
   | maxargs_exp (NumExp _) = 0
   | maxargs_exp (OpExp (e1, _, e2)) = Int.max(maxargs_exp e1, maxargs_exp e2)
   | maxargs_exp (EseqExp (s, e)) = Int.max(maxargs s, maxargs_exp e);
