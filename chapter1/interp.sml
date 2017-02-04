@@ -56,12 +56,30 @@ fun interp s1 = ( interpStm( s1, nil ); () )
 			end	
 	and
 	(* val interpStm = fn : stm * (id * int) list -> table *) 
-	  interpStm ( _, env ) = env;
-
-(*
-fun interpstm
-
-fun interexplist*)
+	  interpStm ( CompoundStm ( s1, s2 ), env ) = 
+	  	let
+	  		val env1 = interpStm ( s1, env )
+	  		val env2 = interpStm ( s2, env1 )
+	  	in
+	  		env2
+	  	end
+	  	| interpStm ( PrintStm ( listExp: exp list), env ) = interpExpList(listExp, env)
+	  	| interpStm ( AssignStm ( id, e1 ), env) = 
+	  		let
+	  			val ( value, env1 ) = interpExp ( e1, env )
+	  		in
+	  			update ( env1, id, value )
+	  		end
+	and
+	(* val interpExpList = fn : exp list * (id * int) list -> table *)
+	  interpExpList ( [], env ) = ( print "\n"; env )
+	  | interpExpList ( e1::theEnd, env ) =
+	  		let
+	  			val ( value, env1 ) = interpExp( e1, env )
+	  		in
+	  			print (Int.toString value ^ " ");
+	  			interpExpList( theEnd, env1)
+	  		end;
 
 (*--------------------------------------------*)
 (* Test cases *)
@@ -71,5 +89,11 @@ update ([("B", 4), ("A", 27)], "C", 1);
 update ([("B", 4)], "B", 1);
 update ([], "B", 2017);
 interpExp(NumExp 5, mtenv);
-interpExp(IdExp "a", [("a", 5)]);
+interpExp(IdExp "A", [("A", 5)]);
 interpExp (OpExp (NumExp 3, Plus, (NumExp 5)), mtenv);
+interpExp(OpExp (NumExp 12, Times, NumExp 10), mtenv); 
+interpExp(OpExp (NumExp 15, Div, NumExp 3),  mtenv);
+interpStm(PrintStm [ IdExp "A", IdExp "C", IdExp "D", IdExp "AB" ], [("A", 1), ("D", 2), ("C", 3), ("AB", 4)]);
+interpStm(AssignStm ("AB", NumExp 7),[]);
+interpStm(CompoundStm(AssignStm("B", NumExp 6), AssignStm("B", NumExp 7)), mtenv); 
+interpStm(CompoundStm (PrintStm [ IdExp "Q", IdExp "S", IdExp "A", IdExp "T" ], AssignStm ("A", NumExp 7) ), [("A", 1), ("T", 2), ("Q", 3), ("S", 4)]);
