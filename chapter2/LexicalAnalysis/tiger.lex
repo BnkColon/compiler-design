@@ -14,11 +14,12 @@ digits = [0-9]+;
 %%
 \n	=> (lineNum := !lineNum+1; linePos := yypos :: !linePos; continue());
 ","	=> (Tokens.COMMA(yypos,yypos+1));
-var  	=> (Tokens.VAR(yypos,yypos+3));
+" " => (continue());
 {digits}=> (let 
 				val SOME x = Int.fromString yytext 
 			in 
 				Tokens.INT(x, yypos, yypos+(String.size yytext))
 			end);
+
 .       => (ErrorMsg.error yypos ("illegal character " ^ yytext); continue());
 
