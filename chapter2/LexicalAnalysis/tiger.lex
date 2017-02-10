@@ -13,6 +13,7 @@ digits = [0-9]+;
 letters = [A-za-z]+;
 %%
 \n	=> (lineNum := !lineNum+1; linePos := yypos :: !linePos; continue());
+\t  => (continue());
 
 ","	=> (Tokens.COMMA(yypos,yypos+1));
 ";" => (Tokens.SEMICOLON(yypos, yypos+1));
