@@ -34,6 +34,25 @@ letters = [A-za-z]+;
 
 " " => (continue());
 
+"(" => (Tokens.LPAREN(yypos, yypos+1));
+")" => (Tokens.RPAREN(yypos, yypos+1));
+"{" => (Tokens.LBRACE(yypos, yypos+1));
+"}" => (Tokens.RBRACE(yypos, yypos+1));
+"[" => (Tokens.LBRACK(yypos, yypos+1));
+"]" => (Tokens.RBRACK(yypos, yypos+1));
+
+nil => (Tokens.NIL(yypos, yypos+3));
+if  => (Tokens.IF(yypos, yypos+2));
+then=> (Tokens.THEN(yypos, yypos+4));
+else=> (Tokens.ELSE(yypos, yypos+4));
+let => (Tokens.LET(yypos, yypos+3));
+in  => (Tokens.IN(yypos, yypos+2));
+end => (Tokens.END(yypos, yypos+3));
+
+function => (Tokens.FUNCTION(yypos, yypos+8));
+var => (Tokens.VAR(yypos, yypos+3));
+type => (Tokens.TYPE(yypos, yypos+4));
+
 {letters}	=> (Tokens.ID(yytext, yypos, yypos+(String.size yytext)));
 {digits}	=> (let 
 					val SOME x = Int.fromString yytext 
