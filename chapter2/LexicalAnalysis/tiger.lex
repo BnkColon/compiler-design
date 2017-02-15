@@ -3,63 +3,82 @@ type lexresult = Tokens.token
 
 val lineNum = ErrorMsg.lineNum
 val linePos = ErrorMsg.linePos
+
+val str = ref ""
+val strPos  = ref 0; 
+val commentCounter  = ref 0;
+
+val unclosedString = ref false
+
 fun err(p1,p2) = ErrorMsg.error p1
 
-fun eof() = let val pos = hd(!linePos) in Tokens.EOF(pos,pos) end
+fun eof() = let val pos = hd(!linePos) in 
+	if !commentCounter > 0 
+		then (ErrorMsg.error pos ("Unclosed comment! Fix it."); commentCounter := 0; Tokens.EOF(pos,pos))
+	else if !unclosedString = true
+		then (ErrorMsg.error pos ("Unclosed string! Fix it."); Tokens.EOF(pos,pos))
+	else (Tokens.EOF(pos,pos)) end
 
-
-%% 
+%%
+%s COMMENT; 
 digits = [0-9]+; 
 letters = [A-za-z]+;
 %%
-\n	=> (lineNum := !lineNum+1; linePos := yypos :: !linePos; continue());
-\t  => (continue());
+<INITIAL>\n	=> (lineNum := !lineNum+1; linePos := yypos :: !linePos; continue());
+<INITIAL>\t  => (continue());
 
-","	=> (Tokens.COMMA(yypos,yypos+1));
-";" => (Tokens.SEMICOLON(yypos, yypos+1));
-":="=> (Tokens.ASSIGN(yypos, yypos+2));
-":" => (Tokens.COLON(yypos, yypos+1));
+<INITIAL>","	=> (Tokens.COMMA(yypos,yypos+1));
+<INITIAL>";" => (Tokens.SEMICOLON(yypos, yypos+1));
+<INITIAL>":="=> (Tokens.ASSIGN(yypos, yypos+2));
+<INITIAL>":" => (Tokens.COLON(yypos, yypos+1));
 
-"+" => (Tokens.PLUS(yypos, yypos+1));
-"-" => (Tokens.MINUS(yypos, yypos+1));
-"*" => (Tokens.PLUS(yypos, yypos+1));
-"/" => (Tokens.DIVIDE(yypos,yypos+1));
-"=" => (Tokens.EQ(yypos, yypos+1));
-"<>"=> (Tokens.NEQ(yypos, yypos+2));
-"<" => (Tokens.LT(yypos, yypos+1));
-">" => (Tokens.GT(yypos, yypos+1));
-"<="=> (Tokens.LE(yypos, yypos+2));
-">="=> (Tokens.GE(yypos, yypos+2));
-"&" => (Tokens.AND(yypos, yypos+1));
-"|" => (Tokens.OR(yypos, yypos+1));
+<INITIAL>"+" => (Tokens.PLUS(yypos, yypos+1));
+<INITIAL>"-" => (Tokens.MINUS(yypos, yypos+1));
+<INITIAL>"*" => (Tokens.PLUS(yypos, yypos+1));
+<INITIAL>"/" => (Tokens.DIVIDE(yypos,yypos+1));
+<INITIAL>"=" => (Tokens.EQ(yypos, yypos+1));
+<INITIAL>"<>"=> (Tokens.NEQ(yypos, yypos+2));
+<INITIAL>"<" => (Tokens.LT(yypos, yypos+1));
+<INITIAL>">" => (Tokens.GT(yypos, yypos+1));
+<INITIAL>"<="=> (Tokens.LE(yypos, yypos+2));
+<INITIAL>">="=> (Tokens.GE(yypos, yypos+2));
+<INITIAL>"&" => (Tokens.AND(yypos, yypos+1));
+<INITIAL>"|" => (Tokens.OR(yypos, yypos+1));
 
-" " => (continue());
+<INITIAL>" " => (continue());
 
-"(" => (Tokens.LPAREN(yypos, yypos+1));
-")" => (Tokens.RPAREN(yypos, yypos+1));
-"{" => (Tokens.LBRACE(yypos, yypos+1));
-"}" => (Tokens.RBRACE(yypos, yypos+1));
-"[" => (Tokens.LBRACK(yypos, yypos+1));
-"]" => (Tokens.RBRACK(yypos, yypos+1));
+<INITIAL>"(" => (Tokens.LPAREN(yypos, yypos+1));
+<INITIAL>")" => (Tokens.RPAREN(yypos, yypos+1));
+<INITIAL>"{" => (Tokens.LBRACE(yypos, yypos+1));
+<INITIAL>"}" => (Tokens.RBRACE(yypos, yypos+1));
+<INITIAL>"[" => (Tokens.LBRACK(yypos, yypos+1));
+<INITIAL>"]" => (Tokens.RBRACK(yypos, yypos+1));
 
-nil => (Tokens.NIL(yypos, yypos+3));
-if  => (Tokens.IF(yypos, yypos+2));
-then=> (Tokens.THEN(yypos, yypos+4));
-else=> (Tokens.ELSE(yypos, yypos+4));
-let => (Tokens.LET(yypos, yypos+3));
-in  => (Tokens.IN(yypos, yypos+2));
-end => (Tokens.END(yypos, yypos+3));
+<INITIAL>nil => (Tokens.NIL(yypos, yypos+3));
+<INITIAL>if  => (Tokens.IF(yypos, yypos+2));
+<INITIAL>then=> (Tokens.THEN(yypos, yypos+4));
+<INITIAL>else=> (Tokens.ELSE(yypos, yypos+4));
+<INITIAL>let => (Tokens.LET(yypos, yypos+3));
+<INITIAL>in  => (Tokens.IN(yypos, yypos+2));
+<INITIAL>end => (Tokens.END(yypos, yypos+3));
 
-function => (Tokens.FUNCTION(yypos, yypos+8));
-var => (Tokens.VAR(yypos, yypos+3));
-type => (Tokens.TYPE(yypos, yypos+4));
+<INITIAL>function => (Tokens.FUNCTION(yypos, yypos+8));
+<INITIAL>var => (Tokens.VAR(yypos, yypos+3));
+<INITIAL>type => (Tokens.TYPE(yypos, yypos+4));
 
-{letters}	=> (Tokens.ID(yytext, yypos, yypos+(String.size yytext)));
-{digits}	=> (let 
+<INITIAL>{letters}	=> (Tokens.ID(yytext, yypos, yypos+(String.size yytext)));
+<INITIAL>{digits}	=> (let 
 					val SOME x = Int.fromString yytext 
 				in 
 					Tokens.INT(x, yypos, yypos+(String.size yytext))
 				end);
 
-.       => (ErrorMsg.error yypos ("illegal character " ^ yytext); continue());
+<INITIAL>"/*" 	=> (YYBEGIN COMMENT; commentCounter := !commentCounter+1; continue()); 
+<COMMENT>"/*" 	=> (commentCounter := !commentCounter + 1; continue()); 
+<COMMENT>"*/" 	=> (commentCounter := !commentCounter - 1; continue()); 
+<COMMENT>[\n] 	=> (lineNum := !lineNum+1; linePos := yypos+1 :: !linePos; continue());
+<COMMENT>. 		=> (continue());
+
+
+<INITIAL>.       => (ErrorMsg.error yypos ("illegal character " ^ yytext); continue());
 

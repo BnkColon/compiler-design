@@ -5,7 +5,7 @@ let
 		else
 			n * fac(n - 1)
 in
-	print(fac(5))
+	printi(fac(5))
 end
 
 		
