@@ -1,1 +1,9 @@
-a ( 5 )
+let
+  function fac(n : int) : int =
+    if n <= 1 then
+        1
+    else
+        n * fac(n - 1)
+in
+    printi(fac(5))
+end

@@ -1,7 +1,5 @@
 %%
-%term
-    EOF 
-  | ID of string
+%term ID of string
   | INT of int | STRING of string 
   | COMMA | COLON | SEMICOLON | LPAREN | RPAREN | LBRACK | RBRACK 
   | LBRACE | RBRACE | DOT 
@@ -9,9 +7,9 @@
   | AND | OR | ASSIGN
   | ARRAY | IF | THEN | ELSE | WHILE | FOR | TO | DO | LET | IN | END | OF 
   | BREAK | NIL
-  | FUNCTION | VAR | TYPE 
+  | FUNCTION | VAR | TYPE | EOF
 
-%nonterm  exp | program
+%nonterm  exp | program | explist | lvalue | binop | expseq | declist | dec | typefields | typefield
 
 %pos int
 %verbose
@@ -30,16 +28,52 @@
 %value INT (1)
 %value STRING ("")
 
+%left PLUS MINUS
+%left TIMES DIVIDE
 
 %%
 
 program	: exp()
 
-exp: INT()
-  | STRING ()
-  | ID LPAREN exp RPAREN ()
-(*  | exp PLUS exp ()
-  | exp MINUS exp ()
-  | exp TIMES exp ()
-  | exp DIVIDE exp ()
-*)
+exp : lvalue ()
+    | NIL ()
+    | INT ()
+    | STRING ()
+    | exp binop exp ()
+    | lvalue ASSIGN exp ()
+    | ID LPAREN explist RPAREN ()
+    | LPAREN expseq RPAREN ()
+    | LET declist IN expseq END ()
+
+lvalue: ID () 
+
+binop: PLUS ()
+    | MINUS ()
+    | TIMES ()
+    | DIVIDE ()
+    | EQ ()
+    | NEQ ()
+    | LT ()
+    | LE ()
+    | GT ()
+    | GE ()
+    | AND ()
+    | OR ()
+
+declist: dec ()
+    | dec declist ()
+
+dec: TYPE ID EQ ID ()
+    | VAR ID COLON ID ASSIGN exp ()
+    | FUNCTION ID LPAREN typefields RPAREN COLON ID EQ exp ()
+
+expseq: exp ()
+    | expseq SEMICOLON exp ()
+
+explist: exp()
+    | explist COMMA exp ()
+
+typefields: typefield ()
+    | typefield COMMA typefields ()
+
+typefield: ID COLON ID ()
