@@ -1,4 +1,4 @@
-# [Parser for a Tiger subset] (http://ccom.uprrp.edu/~humberto/pages/teaching/compilers2017/subset.html)
+# [Parser for a Tiger subset](http://ccom.uprrp.edu/~humberto/pages/teaching/compilers2017/subset.html)
 
 ## Description
 
