@@ -52,9 +52,9 @@ typefield:
 ```
 NOTE: the only valid type ids in our language are aliases of the built in "int" and "string" types. We do not have arrays or structures or other compound types.
 
-Your assignment is to use the sample code in chapter 3 to implement (in tiger.grm) a parser for this subset of tiger. The full description of tiger is in the Appendix A of the book, and you can get a short description of Tiger. Remember, you don't have to implement the whole language, just what I describe above.
+Your assignment is to use the sample code in [chapter 3](https://www.cs.princeton.edu/~appel/modern/ml/chap3/) to implement (in tiger.grm) a parser for this subset of tiger. The full description of tiger is in the Appendix A of the book, and you can get [a short description of Tiger](http://www.cs.columbia.edu/~sedwards/classes/2002/w4115/tiger.pdf). Remember, you don't have to implement the whole language, just what I describe above.
 
-You will definitely need to read Chapter 3 to see examples of building a parser, and the ML-Yacc manual is also useful.
+You will definitely need to read Chapter 3 to see examples of building a parser, and the [ML-Yacc manual](http://www.smlnj.org/doc/ML-Yacc/) is also useful.
 
 Try to keep the number of conflicts in your parser to a minimum. You must not have any reduce-reduce conflicts, and explain any shift-reduce conflicts and how they are resolved.
 
