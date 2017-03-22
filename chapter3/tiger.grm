@@ -1,5 +1,6 @@
 %%
-%term ID of string
+%term EOF
+  | ID of string
   | INT of int | STRING of string 
   | COMMA | COLON | SEMICOLON | LPAREN | RPAREN | LBRACK | RBRACK 
   | LBRACE | RBRACE | DOT 
@@ -7,9 +8,10 @@
   | AND | OR | ASSIGN
   | ARRAY | IF | THEN | ELSE | WHILE | FOR | TO | DO | LET | IN | END | OF 
   | BREAK | NIL
-  | FUNCTION | VAR | TYPE | EOF
+  | FUNCTION | VAR | TYPE 
 
-%nonterm  exp | program | explist | lvalue | binop | expseq | declist | dec | typefields | typefield
+%nonterm  exp | program | explist | lvalue | binop 
+  | expseq | declist | dec | typefields | typefield | expelse
 
 %pos int
 %verbose
@@ -44,6 +46,10 @@ exp : lvalue ()
     | ID LPAREN explist RPAREN ()
     | LPAREN expseq RPAREN ()
     | LET declist IN expseq END ()
+    | IF exp THEN exp expelse ()
+
+expelse: ()
+    | ELSE exp ()
 
 lvalue: ID () 
 

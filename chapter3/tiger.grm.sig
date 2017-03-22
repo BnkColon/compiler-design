@@ -2,7 +2,6 @@ signature Tiger_TOKENS =
 sig
 type ('a,'b) token
 type svalue
-val EOF:  'a * 'a -> (svalue,'a) token
 val TYPE:  'a * 'a -> (svalue,'a) token
 val VAR:  'a * 'a -> (svalue,'a) token
 val FUNCTION:  'a * 'a -> (svalue,'a) token
@@ -46,6 +45,7 @@ val COMMA:  'a * 'a -> (svalue,'a) token
 val STRING: (string) *  'a * 'a -> (svalue,'a) token
 val INT: (int) *  'a * 'a -> (svalue,'a) token
 val ID: (string) *  'a * 'a -> (svalue,'a) token
+val EOF:  'a * 'a -> (svalue,'a) token
 end
 signature Tiger_LRVALS=
 sig
