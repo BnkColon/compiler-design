@@ -4,7 +4,7 @@
   | INT of int | STRING of string 
   | COMMA | COLON | SEMICOLON | LPAREN | RPAREN | LBRACK | RBRACK 
   | LBRACE | RBRACE | DOT 
-  | PLUS | MINUS | TIMES | DIVIDE | EQ | NEQ | LT | LE | GT | GE
+  | PLUS | MINUS | TIMES | DIVIDE | EQ | NEQ | LT | LE | GT | GE | UMINUS
   | AND | OR | ASSIGN
   | ARRAY | IF | THEN | ELSE | WHILE | FOR | TO | DO | LET | IN | END | OF 
   | BREAK | NIL
@@ -30,8 +30,13 @@
 %value INT (1)
 %value STRING ("")
 
+%nonassoc FUNCTION VAR TYPE THEN ASSIGN
+%nonassoc EQ NEQ LT LE GT GE 
 %left PLUS MINUS
 %left TIMES DIVIDE
+%left UMINUS
+%left AND
+%left OR
 
 %%
 
@@ -41,30 +46,27 @@ exp : lvalue ()
     | NIL ()
     | INT ()
     | STRING ()
-    | exp binop exp ()
+    | exp PLUS exp ()
+    | exp MINUS exp ()
+    | exp TIMES exp ()
+    | exp DIVIDE exp ()
+    | MINUS exp %prec UMINUS ()
+    | exp EQ exp ()
+    | exp NEQ exp () 
+    | exp LT exp () 
+    | exp LE exp ()
+    | exp GT exp () 
+    | exp GE exp ()
+    | exp AND exp ()
+    | exp OR exp ()
     | lvalue ASSIGN exp ()
     | ID LPAREN explist RPAREN ()
     | LPAREN expseq RPAREN ()
     | LET declist IN expseq END ()
-    | IF exp THEN exp expelse ()
-
-expelse: ()
-    | ELSE exp ()
+    | IF exp THEN exp ()
+    | IF exp THEN exp ELSE exp ()
 
 lvalue: ID () 
-
-binop: PLUS ()
-    | MINUS ()
-    | TIMES ()
-    | DIVIDE ()
-    | EQ ()
-    | NEQ ()
-    | LT ()
-    | LE ()
-    | GT ()
-    | GE ()
-    | AND ()
-    | OR ()
 
 declist: dec ()
     | dec declist ()
