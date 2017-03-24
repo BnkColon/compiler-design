@@ -80,4 +80,132 @@ let
 in
     printi(fac(5))
 end
-```   
+```
+
+## Results:
+
+After doing this on the terminal:
+
+```
+$ rlwrap sml
+Standard ML of New Jersey v110.80 [built: Thu Feb  9 16:24:11 2017]
+- CM.make "sources.cm";
+[scanning sources.cm]
+["/Users/biancacolon/homebrew/Cellar/smlnj/110.80/SMLNJ_HOME/bin/ml-yacc"  "tiger.grm"]
+13 shift/reduce conflicts
+[parsing (sources.cm):tiger.grm.sig]
+[parsing (sources.cm):tiger.grm.sml]
+[compiling (sources.cm):tiger.grm.sig]
+[code: 56, env: 980 bytes]
+[compiling (sources.cm):tiger.grm.sml]
+[code: 39132, data: 2960, env: 1146 bytes]
+[New bindings added.]
+val it = true : bool
+- Parse.parse "test.tig";
+val it = () : unit
+```
+
+We can see this results in the tiger.grm.desc file: 
+
+```
+13 shift/reduce conflicts
+
+error:  state 61: shift/reduce conflict (shift ELSE, reduce by rule 22)
+error:  state 77: shift/reduce conflict (shift OR, reduce by rule 23)
+error:  state 77: shift/reduce conflict (shift AND, reduce by rule 23)
+error:  state 77: shift/reduce conflict (shift GE, reduce by rule 23)
+error:  state 77: shift/reduce conflict (shift GT, reduce by rule 23)
+error:  state 77: shift/reduce conflict (shift LE, reduce by rule 23)
+error:  state 77: shift/reduce conflict (shift LT, reduce by rule 23)
+error:  state 77: shift/reduce conflict (shift NEQ, reduce by rule 23)
+error:  state 77: shift/reduce conflict (shift EQ, reduce by rule 23)
+error:  state 77: shift/reduce conflict (shift DIVIDE, reduce by rule 23)
+error:  state 77: shift/reduce conflict (shift TIMES, reduce by rule 23)
+error:  state 77: shift/reduce conflict (shift MINUS, reduce by rule 23)
+error:  state 77: shift/reduce conflict (shift PLUS, reduce by rule 23)
+
+error:  state 61: shift/reduce conflict (shift ELSE, reduce by rule 22)
+
+state 61:
+
+    exp : exp . PLUS exp 
+    exp : exp . MINUS exp 
+    exp : exp . TIMES exp 
+    exp : exp . DIVIDE exp 
+    exp : exp . EQ exp 
+    exp : exp . NEQ exp 
+    exp : exp . LT exp 
+    exp : exp . LE exp 
+    exp : exp . GT exp 
+    exp : exp . GE exp 
+    exp : exp . AND exp 
+    exp : exp . OR exp 
+    exp : IF exp THEN exp .  (reduce by rule 22)
+    exp : IF exp THEN exp . ELSE exp 
+
+    PLUS    shift 23
+    MINUS   shift 22
+    TIMES   shift 21
+    DIVIDE  shift 20
+    EQ  shift 19
+    NEQ shift 18
+    LT  shift 17
+    LE  shift 16
+    GT  shift 15
+    GE  shift 14
+    AND shift 13
+    OR  shift 12
+    ELSE    shift 71
+
+
+    .   reduce by rule 22
+
+
+error:  state 77: shift/reduce conflict (shift OR, reduce by rule 23)
+error:  state 77: shift/reduce conflict (shift AND, reduce by rule 23)
+error:  state 77: shift/reduce conflict (shift GE, reduce by rule 23)
+error:  state 77: shift/reduce conflict (shift GT, reduce by rule 23)
+error:  state 77: shift/reduce conflict (shift LE, reduce by rule 23)
+error:  state 77: shift/reduce conflict (shift LT, reduce by rule 23)
+error:  state 77: shift/reduce conflict (shift NEQ, reduce by rule 23)
+error:  state 77: shift/reduce conflict (shift EQ, reduce by rule 23)
+error:  state 77: shift/reduce conflict (shift DIVIDE, reduce by rule 23)
+error:  state 77: shift/reduce conflict (shift TIMES, reduce by rule 23)
+error:  state 77: shift/reduce conflict (shift MINUS, reduce by rule 23)
+error:  state 77: shift/reduce conflict (shift PLUS, reduce by rule 23)
+
+state 77:
+
+    exp : exp . PLUS exp 
+    exp : exp . MINUS exp 
+    exp : exp . TIMES exp 
+    exp : exp . DIVIDE exp 
+    exp : exp . EQ exp 
+    exp : exp . NEQ exp 
+    exp : exp . LT exp 
+    exp : exp . LE exp 
+    exp : exp . GT exp 
+    exp : exp . GE exp 
+    exp : exp . AND exp 
+    exp : exp . OR exp 
+    exp : IF exp THEN exp ELSE exp .  (reduce by rule 23)
+
+    PLUS    shift 23
+    MINUS   shift 22
+    TIMES   shift 21
+    DIVIDE  shift 20
+    EQ  shift 19
+    NEQ shift 18
+    LT  shift 17
+    LE  shift 16
+    GT  shift 15
+    GE  shift 14
+    AND shift 13
+    OR  shift 12
+
+
+    .   reduce by rule 23   
+
+```
+
+This are the states that have shift/reduce conflicts and now we can see in what instructions they are generated.
