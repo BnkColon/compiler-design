@@ -1,19 +1,19 @@
 structure A = Absyn
 
 %%
-%term
-    EOF 
+%term EOF
   | ID of string
   | INT of int | STRING of string 
   | COMMA | COLON | SEMICOLON | LPAREN | RPAREN | LBRACK | RBRACK 
   | LBRACE | RBRACE | DOT 
-  | PLUS | MINUS | TIMES | DIVIDE | EQ | NEQ | LT | LE | GT | GE
+  | PLUS | MINUS | TIMES | DIVIDE | EQ | NEQ | LT | LE | GT | GE | UMINUS
   | AND | OR | ASSIGN
   | ARRAY | IF | THEN | ELSE | WHILE | FOR | TO | DO | LET | IN | END | OF 
   | BREAK | NIL
   | FUNCTION | VAR | TYPE 
 
-%nonterm exp of A.exp | program of A.exp
+%nonterm  exp of A.exp | program of A.exp | explist of A.exp | lvalue of A.exp | binop of A.exp 
+  | expseq of A.exp | declist of A.exp | dec of A.exp | typefields of A.exp | typefield of A.exp |  expelse of A.exp
 
 %pos int
 %verbose
@@ -24,7 +24,7 @@ structure A = Absyn
 %name Tiger
 
 %keyword WHILE FOR TO BREAK LET IN END FUNCTION VAR TYPE ARRAY IF THEN ELSE 
-	DO OF NIL
+  DO OF NIL
 
 %prefer THEN ELSE LPAREN
 
@@ -32,9 +32,58 @@ structure A = Absyn
 %value INT (1)
 %value STRING ("")
 
+%nonassoc FUNCTION VAR TYPE THEN ASSIGN
+%nonassoc EQ NEQ LT LE GT GE 
+%left PLUS MINUS
+%left TIMES DIVIDE
+%left UMINUS
+%left AND
+%left OR
+
 %%
 
-program	: exp				(exp)
+program : exp()
 
-	
-exp: NIL		(A.NilExp)
+exp : lvalue ()
+    | NIL ()
+    | INT ()
+    | STRING ()
+    | exp PLUS exp ()
+    | exp MINUS exp ()
+    | exp TIMES exp ()
+    | exp DIVIDE exp ()
+    | MINUS exp %prec UMINUS ()
+    | exp EQ exp ()
+    | exp NEQ exp () 
+    | exp LT exp () 
+    | exp LE exp ()
+    | exp GT exp () 
+    | exp GE exp ()
+    | exp AND exp ()
+    | exp OR exp ()
+    | lvalue ASSIGN exp ()
+    | ID LPAREN explist RPAREN ()
+    | LPAREN expseq RPAREN ()
+    | LET declist IN expseq END ()
+    | IF exp THEN exp ()
+    | IF exp THEN exp ELSE exp ()
+
+lvalue: ID () 
+
+declist: dec ()
+    | dec declist ()
+
+dec: TYPE ID EQ ID ()
+    | VAR ID COLON ID ASSIGN exp ()
+    | FUNCTION ID LPAREN typefields RPAREN COLON ID EQ exp ()
+
+expseq: exp ()
+    | expseq SEMICOLON exp ()
+
+explist: exp()
+    | explist COMMA exp ()
+
+typefields: typefield ()
+    | typefield COMMA typefields ()
+
+typefield: ID COLON ID ()
