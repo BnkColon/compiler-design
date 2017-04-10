@@ -13,7 +13,7 @@ structure A = Absyn
   | BREAK | NIL
   | FUNCTION | VAR | TYPE 
 
-%nonterm  exp | program of A.exp
+%nonterm exp of A.exp | program of A.exp
 
 %pos int
 %verbose

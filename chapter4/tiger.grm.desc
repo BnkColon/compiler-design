@@ -1,0 +1,41 @@
+
+state 0:
+
+	program : . exp 
+
+	NIL	shift 2
+
+	exp	goto 1
+	program	goto 3
+
+	.	error
+
+
+state 1:
+
+	program : exp .  (reduce by rule 0)
+
+
+
+	.	reduce by rule 0
+
+
+state 2:
+
+	exp : NIL .  (reduce by rule 1)
+
+
+
+	.	reduce by rule 1
+
+
+state 3:
+
+
+	EOF	accept
+
+
+	.	error
+
+2 of 6 action table entries left after compaction
+2 goto table entries
