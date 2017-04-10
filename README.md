@@ -221,7 +221,7 @@ end
 
 ## [Abstract syntax parser for a Tiger subset](http://ccom.uprrp.edu/~humberto/pages/teaching/compilers2017/ast.html)
 
-###Description
+### Description
 
 Construct a parser for a subset of tiger that recognizes the same language as the [last assignment](http://ccom.uprrp.edu/~humberto/pages/teaching/compilers2017/subset.html).
 
@@ -288,7 +288,7 @@ The full description of tiger is in the Appendix A of the book, and you can get 
 
 You will definitely need to read Chapter 4 to see examples of building a parser and abstract syntax tree, and the [ML-Yacc manual](http://www.smlnj.org/doc/ML-Yacc/) is also useful.   
 
-###Example code 
+### Example code 
 
 I built a parser for Straight Line Programs (SLP), that reads the text and outputs a AST using a structure like slp.sml from Chapter 1. I also connected that parser with my own SLP interpreter. You can read [my code](https://github.com/humberto-ortiz/compilers-2017) to see how to build AST for SLP in slp/slp.grm. Your assignment is not to implement an SLP parser, but a parser for tiger. This is just so you can get an idea for building the AST in the productions.
 
