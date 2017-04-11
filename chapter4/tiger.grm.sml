@@ -582,7 +582,7 @@ end
  (LETleft as LET1left), _)) :: rest671)) => let val  result = 
 MlyValue.exp (fn _ => let val  (declist as declist1) = declist1 ()
  val  (seqexp as seqexp1) = seqexp1 ()
- in (A.LetExp{decs=declist,body=A.SeqExp(seqexp),pos=LETleft})
+ in (A.LetExp {decs=declist,body=A.SeqExp(seqexp),pos=LETleft})
 end)
  in ( LrTable.NT 0, ( result, LET1left, END1right), rest671)
 end

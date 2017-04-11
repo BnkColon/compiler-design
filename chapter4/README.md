@@ -102,3 +102,28 @@ val it = () : unit
 ```
 
 ## Results:
+
+Test code in file test.tig:
+
+```
+let
+  function fac(n : int) : int =
+    if n <= 1 then
+        1
+    else
+        n * fac(n - 1)
+in
+    printi(fac(5))
+end
+```
+
+Results:
+
+```
+- CM.make "sources.cm";
+[scanning sources.cm]
+[New bindings added.]
+val it = true : bool
+- Parse.parse "test.tig";
+val it = LetExp {body=SeqExp [(#,#)],decs=[FunctionDec [#]],pos=2} : Absyn.exp
+```
