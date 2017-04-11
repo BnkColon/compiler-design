@@ -22,6 +22,7 @@ val ARRAY:  'a * 'a -> (svalue,'a) token
 val ASSIGN:  'a * 'a -> (svalue,'a) token
 val OR:  'a * 'a -> (svalue,'a) token
 val AND:  'a * 'a -> (svalue,'a) token
+val UMINUS:  'a * 'a -> (svalue,'a) token
 val GE:  'a * 'a -> (svalue,'a) token
 val GT:  'a * 'a -> (svalue,'a) token
 val LE:  'a * 'a -> (svalue,'a) token

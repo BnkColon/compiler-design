@@ -1,19 +1,28 @@
 structure A = Absyn
 
+fun makeIf(e1, e2, el, p) = 
+    A.IfExp {test = e1, then' = e2, else' = el, pos = p}
+
 %%
 %term EOF
   | ID of string
   | INT of int | STRING of string 
-  | COMMA | COLON | SEMICOLON | LPAREN | RPAREN | LBRACK | RBRACK 
+  | COMMA | COLON | SEMICOLON | LPAREN 
+  | RPAREN | LBRACK | RBRACK 
   | LBRACE | RBRACE | DOT 
-  | PLUS | MINUS | TIMES | DIVIDE | EQ | NEQ | LT | LE | GT | GE | UMINUS
+  | PLUS | MINUS | TIMES | DIVIDE | EQ 
+  | NEQ | LT | LE | GT | GE | UMINUS
   | AND | OR | ASSIGN
-  | ARRAY | IF | THEN | ELSE | WHILE | FOR | TO | DO | LET | IN | END | OF 
+  | ARRAY | IF | THEN | ELSE | WHILE 
+  | FOR | TO | DO | LET | IN | END | OF 
   | BREAK | NIL
   | FUNCTION | VAR | TYPE 
 
-%nonterm  exp of A.exp | program of A.exp | explist of A.exp | lvalue of A.exp | binop of A.exp 
-  | expseq of A.exp | declist of A.exp | dec of A.exp | typefields of A.exp | typefield of A.exp |  expelse of A.exp
+%nonterm  exp of A.exp | program of A.exp 
+  | explist of A.exp | lvalue of A.var | binop of A.exp 
+  | expseq of A.exp list | declist of A.dec list 
+  | dec of A.dec | typefields of A.exp | typefield of A.exp 
+  | expelse of A.exp
 
 %pos int
 %verbose
@@ -23,8 +32,8 @@ structure A = Absyn
 
 %name Tiger
 
-%keyword WHILE FOR TO BREAK LET IN END FUNCTION VAR TYPE ARRAY IF THEN ELSE 
-  DO OF NIL
+%keyword WHILE FOR TO BREAK LET IN 
+END FUNCTION VAR TYPE ARRAY IF THEN ELSE DO OF NIL
 
 %prefer THEN ELSE LPAREN
 
@@ -42,33 +51,33 @@ structure A = Absyn
 
 %%
 
-program : exp()
+program : exp(exp)
 
-exp : lvalue ()
-    | NIL ()
-    | INT ()
-    | STRING ()
-    | exp PLUS exp ()
-    | exp MINUS exp ()
-    | exp TIMES exp ()
-    | exp DIVIDE exp ()
-    | MINUS exp %prec UMINUS ()
-    | exp EQ exp ()
-    | exp NEQ exp () 
-    | exp LT exp () 
-    | exp LE exp ()
-    | exp GT exp () 
-    | exp GE exp ()
-    | exp AND exp ()
-    | exp OR exp ()
-    | lvalue ASSIGN exp ()
+exp : lvalue (A.VarExp lvalue)
+    | NIL (A.NilExp)
+    | INT (A.IntExp INT)
+    | STRING (A.StringExp (STRING, STRINGleft))
+    | exp PLUS exp (A.OpExp {left=exp1, oper=A.PlusOp, right=exp2, pos=PLUSleft})
+    | exp MINUS exp (A.OpExp {left=exp1, oper=A.MinusOp, right=exp2, pos=MINUSleft})
+    | exp TIMES exp (A.OpExp {left=exp1, oper=A.TimesOp, right=exp2, pos=TIMESleft})
+    | exp DIVIDE exp (A.OpExp {left=exp1, oper=A.DivideOp, right=exp2, pos=DIVIDEleft})
+    | MINUS exp %prec UMINUS (A.OpExp {left=A.IntExp ~1, oper=A.TimesOp, right=exp, pos=MINUSleft})
+    | exp EQ exp (A.OpExp {left=exp1, oper=A.EqOp, right=exp2, pos=EQleft})
+    | exp NEQ exp (A.OpExp {left=exp1, oper=A.NeqOp, right=exp2, pos=NEQleft}) 
+    | exp LT exp (A.OpExp {left=exp1, oper=A.LtOp, right=exp2, pos=LTleft}) 
+    | exp LE exp (A.OpExp {left=exp1, oper=A.LeOp, right=exp2, pos=LEleft})
+    | exp GT exp (A.OpExp {left=exp1, oper=A.GtOp, right=exp2, pos=GTleft}) 
+    | exp GE exp (A.OpExp {left=exp1, oper=A.GeOp, right=exp2, pos=GEleft})
+    | exp AND exp (makeIf(exp1, exp2, SOME(A.IntExp(0)), exp1left))
+    | exp OR exp (makeIf(exp1, A.IntExp(1), SOME exp2, exp1left))
+    | lvalue ASSIGN exp (A.AssignExp {var=lvalue, exp=exp,pos=ASSIGNleft})
     | ID LPAREN explist RPAREN ()
-    | LPAREN expseq RPAREN ()
-    | LET declist IN expseq END ()
-    | IF exp THEN exp ()
-    | IF exp THEN exp ELSE exp ()
+    | LPAREN expseq RPAREN (A.SeqExp(expseq))
+    | LET declist IN expseq END (A.LetExp{decs=declist,body=A.SeqExp(expseq),pos=LETleft})
+    | IF exp THEN exp (A.IfExp {test=exp1, then'=exp2, else'=NONE, pos=IFleft})
+    | IF exp THEN exp ELSE exp (A.IfExp {test=exp1, then'=exp2, else'= SOME exp3, pos=IFleft})
 
-lvalue: ID () 
+lvalue: ID (A.SimpleVar(Symbol.symbol ID, IDleft)) 
 
 declist: dec ()
     | dec declist ()
@@ -77,8 +86,8 @@ dec: TYPE ID EQ ID ()
     | VAR ID COLON ID ASSIGN exp ()
     | FUNCTION ID LPAREN typefields RPAREN COLON ID EQ exp ()
 
-expseq: exp ()
-    | expseq SEMICOLON exp ()
+expseq: exp (nil)
+    | expseq SEMICOLON exp ((exp, expleft) :: seqList)
 
 explist: exp()
     | explist COMMA exp ()
