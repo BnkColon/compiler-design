@@ -3,32 +3,32 @@ structure A = Absyn
 fun makeIf(e1, e2, el, p) =  A.IfExp {test = e1, then' = e2, else' = el, pos = p}
 
 %%
-%term EOF
+%term
+    EOF 
   | ID of string
   | INT of int | STRING of string 
-  | COMMA | COLON | SEMICOLON | LPAREN 
-  | RPAREN | LBRACK | RBRACK 
+  | COMMA | COLON | SEMICOLON | LPAREN | RPAREN | LBRACK | RBRACK 
   | LBRACE | RBRACE | DOT 
-  | PLUS | MINUS | TIMES | DIVIDE | EQ 
-  | NEQ | LT | LE | GT | GE | UMINUS
+  | PLUS | MINUS | TIMES | DIVIDE | EQ | NEQ | LT | LE | GT | GE
   | AND | OR | ASSIGN
-  | ARRAY | IF | THEN | ELSE | WHILE 
-  | FOR | TO | DO | LET | IN | END | OF 
+  | ARRAY | IF | THEN | ELSE | WHILE | FOR | TO | DO | LET | IN | END | OF 
   | BREAK | NIL
-  | FUNCTION | VAR | TYPE 
+  | FUNCTION | VAR | TYPE
+  | UMINUS
+  | LOWPREC
 
 %nonterm  exp of A.exp 
-  | program of A.exp 
+  | program of A.exp
+  | seqexp of (A.exp * pos) list
+  | seqList of (A.exp * pos) list
+  | lvalue of A.var
+  | dec of A.dec
+  | declist of A.dec list
+  | tyField of A.field
+  | tyFields of A.field list
+  | tyFieldsList of A.field list
   | explist of A.exp list
-  | lvalue of A.var 
-  | expseq of A.exp list
-  | listseq of (A.exp * pos) list 
-  | declist of A.dec list 
-  | dec of A.dec 
-  | typefield of A.field
-  | typefields of A.field list 
-  | typefieldsList of A.field list
-
+  | explistC of A.exp list
 
 %pos int
 %verbose
@@ -38,8 +38,8 @@ fun makeIf(e1, e2, el, p) =  A.IfExp {test = e1, then' = e2, else' = el, pos = p
 
 %name Tiger
 
-%keyword WHILE FOR TO BREAK LET IN 
-END FUNCTION VAR TYPE ARRAY IF THEN ELSE DO OF NIL
+%keyword WHILE FOR TO BREAK LET IN END FUNCTION VAR TYPE ARRAY IF THEN ELSE 
+  DO OF NIL
 
 %prefer THEN ELSE LPAREN
 
@@ -47,65 +47,70 @@ END FUNCTION VAR TYPE ARRAY IF THEN ELSE DO OF NIL
 %value INT (1)
 %value STRING ("")
 
-%nonassoc FUNCTION VAR TYPE THEN ASSIGN
-%nonassoc EQ NEQ LT LE GT GE 
+%nonassoc LOWPREC
+%nonassoc FUNCTION VAR TYPE THEN DO OF ASSIGN
+%nonassoc EQ NEQ LT LE GT GE
 %left PLUS MINUS
 %left TIMES DIVIDE
-%left UMINUS
+%right UMINUS
+%right ELSE 
 %left AND
 %left OR
 
 %%
 
-program : exp(exp)
+program : exp (exp)
 
-exp : lvalue (A.VarExp lvalue)
-    | NIL (A.NilExp)
-    | INT (A.IntExp INT)
-    | STRING (A.StringExp (STRING, STRINGleft))
-    | exp PLUS exp (A.OpExp {left=exp1, oper=A.PlusOp, right=exp2, pos=PLUSleft})
-    | exp MINUS exp (A.OpExp {left=exp1, oper=A.MinusOp, right=exp2, pos=MINUSleft})
-    | exp TIMES exp (A.OpExp {left=exp1, oper=A.TimesOp, right=exp2, pos=TIMESleft})
-    | exp DIVIDE exp (A.OpExp {left=exp1, oper=A.DivideOp, right=exp2, pos=DIVIDEleft})
-    | MINUS exp %prec UMINUS (A.OpExp {left=A.IntExp ~1, oper=A.TimesOp, right=exp, pos=MINUSleft})
-    | exp EQ exp (A.OpExp {left=exp1, oper=A.EqOp, right=exp2, pos=EQleft})
-    | exp NEQ exp (A.OpExp {left=exp1, oper=A.NeqOp, right=exp2, pos=NEQleft}) 
-    | exp LT exp (A.OpExp {left=exp1, oper=A.LtOp, right=exp2, pos=LTleft}) 
-    | exp LE exp (A.OpExp {left=exp1, oper=A.LeOp, right=exp2, pos=LEleft})
-    | exp GT exp (A.OpExp {left=exp1, oper=A.GtOp, right=exp2, pos=GTleft}) 
-    | exp GE exp (A.OpExp {left=exp1, oper=A.GeOp, right=exp2, pos=GEleft})
-    | exp AND exp (makeIf(exp1, exp2, SOME(A.IntExp(0)), exp1left))
-    | exp OR exp (makeIf(exp1, A.IntExp(1), SOME exp2, exp1left))
-    | lvalue ASSIGN exp (A.AssignExp {var=lvalue, exp=exp,pos=ASSIGNleft})
-    | ID LPAREN explist RPAREN (A.CallExp {func= Symbol.symbol ID, args=explist, pos=IDleft})
-    | LPAREN expseq RPAREN (A.SeqExp(expseq))
-    | LET declist IN expseq END (A.LetExp{decs=declist,body=A.SeqExp(expseq),pos=LETleft})
-    | IF exp THEN exp (A.IfExp {test=exp1, then'=exp2, else'=NONE, pos=IFleft})
-    | IF exp THEN exp ELSE exp (A.IfExp {test=exp1, then'=exp2, else'= SOME exp3, pos=IFleft})
+exp: lvalue (A.VarExp lvalue)
+  | MINUS exp %prec UMINUS (A.OpExp {left=A.IntExp ~1, oper=A.TimesOp, right=exp, pos=MINUSleft})
+  | NIL (A.NilExp)
+  | INT (A.IntExp INT)
+  | STRING (A.StringExp (STRING, STRINGleft))
+  | ID LPAREN explist RPAREN   (A.CallExp {func= Symbol.symbol ID, args=explist, pos=IDleft})
+  | exp MINUS exp (A.OpExp {left=exp1, oper=A.MinusOp, right=exp2, pos=MINUSleft})
+  | exp PLUS exp (A.OpExp {left=exp1, oper=A.PlusOp, right=exp2, pos=PLUSleft})
+  | exp TIMES exp (A.OpExp {left=exp1, oper=A.TimesOp, right=exp2, pos=TIMESleft})
+  | exp DIVIDE exp (A.OpExp {left=exp1, oper=A.DivideOp, right=exp2, pos=DIVIDEleft})
+  | exp EQ exp (A.OpExp {left=exp1, oper=A.EqOp, right=exp2, pos=EQleft})
+  | exp NEQ exp (A.OpExp {left=exp1, oper=A.NeqOp, right=exp2, pos=NEQleft})
+  | exp LT exp (A.OpExp {left=exp1, oper=A.LtOp, right=exp2, pos=LTleft})
+  | exp LE exp (A.OpExp {left=exp1, oper=A.LeOp, right=exp2, pos=LEleft})
+  | exp GT exp (A.OpExp {left=exp1, oper=A.GtOp, right=exp2, pos=GTleft})
+  | exp GE exp (A.OpExp {left=exp1, oper=A.GeOp, right=exp2, pos=GEleft})
+  | exp AND exp (makeIf(exp1, exp2, SOME(A.IntExp(0)), exp1left))
+  | exp OR exp (makeIf(exp1, A.IntExp(1), SOME exp2, exp1left))
+  | LET declist IN seqexp END (A.LetExp{decs=declist,body=A.SeqExp(seqexp),pos=LETleft})
+  | IF exp THEN exp ELSE exp (A.IfExp {test=exp1, then'=exp2, else'= SOME exp3, pos=IFleft})
+  | IF exp THEN exp (A.IfExp {test=exp1, then'=exp2, else'=NONE, pos=IFleft})
+  | lvalue ASSIGN exp (A.AssignExp {var=lvalue, exp=exp,pos=ASSIGNleft})
+  | LPAREN seqexp RPAREN (A.SeqExp(seqexp))
 
-lvalue: ID (A.SimpleVar(Symbol.symbol ID, IDleft)) 
+seqexp:                 (nil)
+|  exp seqList          ((exp, expleft) :: seqList)
 
-declist: dec (dec :: nil)
-    | dec declist (dec :: declist)
-
-dec: TYPE ID EQ ID (A.TypeDec[{name= Symbol.symbol ID1, ty=A.NameTy(Symbol.symbol ID2, ID2left), pos=TYPEleft}])
-    | VAR ID COLON ID ASSIGN exp (A.VarDec {name=Symbol.symbol ID1, escape= ref true, typ= SOME (Symbol.symbol ID2, ID2left), init=exp,pos=VARleft})
-    | FUNCTION ID LPAREN typefields RPAREN COLON ID EQ exp ({name= Symbol.symbol ID1, params= typeFields, result= SOME (Symbol.symbol ID2, ID2left), body= exp, pos=FUNCTIONleft})
-
-expseq: exp (nil)
-    | exp listseq ((exp, expleft) :: listseq)
-
-listseq:                (nil)
-    |  SEMICOLON exp listseq  ((exp,expleft) :: listseq)    
+seqList:                (nil)
+|  SEMICOLON exp seqList  ((exp,expleft) :: seqList)
 
 explist: (nil)
-    | exp (exp :: nil)
-    | explist COMMA exp (exp :: explist)
+  | exp explistC (exp :: explistC)
 
-typefield: ID COLON ID ({name = Symbol.symbol ID1, escape= ref true, typ= Symbol.symbol ID2, pos= ID1left})
+explistC: (nil)
+  | COMMA exp explistC (exp :: explistC)  
 
-typefields: (nil)
-    | typefield typefieldsList (typefield :: typefieldsList)
 
-typefieldsList: (nil)
-    | COMMA typefield typefieldsList (typefield :: typefieldsList)
+lvalue: ID (A.SimpleVar(Symbol.symbol ID, IDleft))
+
+dec: VAR ID COLON ID ASSIGN exp (A.VarDec {name=Symbol.symbol ID1, escape= ref true, typ= SOME (Symbol.symbol ID2, ID2left), init=exp,pos=VARleft})
+  | TYPE ID EQ ID  (A.TypeDec[{name= Symbol.symbol ID1, ty=A.NameTy(Symbol.symbol ID2, ID2left), pos=TYPEleft}])
+  | FUNCTION ID LPAREN tyFields RPAREN COLON ID EQ exp (A.FunctionDec[{name= Symbol.symbol ID1, params= tyFields, result= SOME (Symbol.symbol ID2, ID2left), body= exp, pos=FUNCTIONleft}])
+
+declist: dec (dec :: nil)
+  | dec declist (dec :: declist)
+
+tyField: ID COLON ID ({name = Symbol.symbol ID1, escape= ref true, typ= Symbol.symbol ID2, pos= ID1left})
+
+tyFields:            (nil)
+  | tyField tyFieldsList  (tyField :: tyFieldsList)
+
+tyFieldsList:         (nil)
+  | COMMA tyField tyFieldsList   (tyField :: tyFieldsList)
