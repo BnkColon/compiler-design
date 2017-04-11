@@ -1,7 +1,6 @@
 structure A = Absyn
 
-fun makeIf(e1, e2, el, p) = 
-    A.IfExp {test = e1, then' = e2, else' = el, pos = p}
+fun makeIf(e1, e2, el, p) =  A.IfExp {test = e1, then' = e2, else' = el, pos = p}
 
 %%
 %term EOF
@@ -18,11 +17,18 @@ fun makeIf(e1, e2, el, p) =
   | BREAK | NIL
   | FUNCTION | VAR | TYPE 
 
-%nonterm  exp of A.exp | program of A.exp 
-  | explist of A.exp | lvalue of A.var | binop of A.exp 
-  | expseq of A.exp list | declist of A.dec list 
-  | dec of A.dec | typefields of A.exp | typefield of A.exp 
-  | expelse of A.exp
+%nonterm  exp of A.exp 
+  | program of A.exp 
+  | explist of A.exp list
+  | lvalue of A.var 
+  | expseq of A.exp list
+  | listseq of (A.exp * pos) list 
+  | declist of A.dec list 
+  | dec of A.dec 
+  | typefield of A.field
+  | typefields of A.field list 
+  | typefieldsList of A.field list
+
 
 %pos int
 %verbose
@@ -71,7 +77,7 @@ exp : lvalue (A.VarExp lvalue)
     | exp AND exp (makeIf(exp1, exp2, SOME(A.IntExp(0)), exp1left))
     | exp OR exp (makeIf(exp1, A.IntExp(1), SOME exp2, exp1left))
     | lvalue ASSIGN exp (A.AssignExp {var=lvalue, exp=exp,pos=ASSIGNleft})
-    | ID LPAREN explist RPAREN ()
+    | ID LPAREN explist RPAREN (A.CallExp {func= Symbol.symbol ID, args=explist, pos=IDleft})
     | LPAREN expseq RPAREN (A.SeqExp(expseq))
     | LET declist IN expseq END (A.LetExp{decs=declist,body=A.SeqExp(expseq),pos=LETleft})
     | IF exp THEN exp (A.IfExp {test=exp1, then'=exp2, else'=NONE, pos=IFleft})
@@ -79,20 +85,27 @@ exp : lvalue (A.VarExp lvalue)
 
 lvalue: ID (A.SimpleVar(Symbol.symbol ID, IDleft)) 
 
-declist: dec ()
-    | dec declist ()
+declist: dec (dec :: nil)
+    | dec declist (dec :: declist)
 
-dec: TYPE ID EQ ID ()
-    | VAR ID COLON ID ASSIGN exp ()
-    | FUNCTION ID LPAREN typefields RPAREN COLON ID EQ exp ()
+dec: TYPE ID EQ ID (A.TypeDec[{name= Symbol.symbol ID1, ty=A.NameTy(Symbol.symbol ID2, ID2left), pos=TYPEleft}])
+    | VAR ID COLON ID ASSIGN exp (A.VarDec {name=Symbol.symbol ID1, escape= ref true, typ= SOME (Symbol.symbol ID2, ID2left), init=exp,pos=VARleft})
+    | FUNCTION ID LPAREN typefields RPAREN COLON ID EQ exp ({name= Symbol.symbol ID1, params= typeFields, result= SOME (Symbol.symbol ID2, ID2left), body= exp, pos=FUNCTIONleft})
 
 expseq: exp (nil)
-    | expseq SEMICOLON exp ((exp, expleft) :: seqList)
+    | exp listseq ((exp, expleft) :: listseq)
 
-explist: exp()
-    | explist COMMA exp ()
+listseq:                (nil)
+    |  SEMICOLON exp listseq  ((exp,expleft) :: listseq)    
 
-typefields: typefield ()
-    | typefield COMMA typefields ()
+explist: (nil)
+    | exp (exp :: nil)
+    | explist COMMA exp (exp :: explist)
 
-typefield: ID COLON ID ()
+typefield: ID COLON ID ({name = Symbol.symbol ID1, escape= ref true, typ= Symbol.symbol ID2, pos= ID1left})
+
+typefields: (nil)
+    | typefield typefieldsList (typefield :: typefieldsList)
+
+typefieldsList: (nil)
+    | COMMA typefield typefieldsList (typefield :: typefieldsList)
