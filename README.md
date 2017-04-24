@@ -428,5 +428,5 @@ OpExp(PlusOp,
   IntExp(4)))
 val it = () : unit
 ```
-Extra credit
+### Extra credit
 Add the rules for if/then/else expressions, function declarations and function calls and the remaining binops to the grammar as in [the prior assignments](http://ccom.uprrp.edu/~humberto/pages/teaching/compilers2017/subset.html), and generate the correct AST, then typecheck a program with functions and if expressions.
