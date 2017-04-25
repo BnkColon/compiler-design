@@ -111,3 +111,25 @@ val it = () : unit
 Add the rules for if/then/else expressions, function declarations and function calls and the remaining binops to the grammar as in [the prior assignments](http://ccom.uprrp.edu/~humberto/pages/teaching/compilers2017/subset.html), and generate the correct AST, then typecheck a program with functions and if expressions.
 
 ## Results: 
+
+Running this code in the files of chapter 4, we obtained some of the expected results. 
+
+```
+- Parse.parse "plus.tig";
+val it = OpExp {left=IntExp 3,oper=PlusOp,pos=4,right=StringExp ("Hello",6)}
+  : Absyn.exp
+- Parse.parse "big.tig";
+val it =
+  OpExp
+    {left=OpExp {left=IntExp #,oper=TimesOp,pos=4,right=IntExp #},oper=PlusOp,
+     pos=8,right=OpExp {left=IntExp #,oper=TimesOp,pos=12,right=IntExp #}}
+  : Absyn.exp
+- PrintAbsyn.print (TextIO.stdOut, it);
+[autoloading]
+[autoloading done]
+stdIn:4.1-4.17 Error: unbound structure: PrintAbsyn in path PrintAbsyn.print
+- PrintAbsyn.print (TextIO.stdOut, Parse.parse "let.tig");
+stdIn:1.2-1.18 Error: unbound structure: PrintAbsyn in path PrintAbsyn.print
+- Semant.transProg (Parse.parse "plus.tig");
+stdIn:1.2-1.18 Error: unbound structure: Semant in path Semant.transProg
+```
