@@ -19,7 +19,7 @@ and exp = VarExp of var
         | AssignExp of {var: var, exp: exp, pos: pos}
         | IfExp of {test: exp, then': exp, else': exp option, pos: pos}
         | WhileExp of {test: exp, body: exp, pos: pos}
-	| ForExp of {var: symbol, escape: bool ref,
+	    | ForExp of {var: symbol, escape: bool ref,
 		     lo: exp, hi: exp, body: exp, pos: pos}
         | BreakExp of pos
         | LetExp of {decs: dec list, body: exp, pos: pos}
