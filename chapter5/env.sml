@@ -4,9 +4,9 @@ sig
   type access
   type ty
   datatype enventry = VarEntry of {access: Translate.access, ty: ty}
-    | FunEntry of {formals: ty list, result: ty}
-  val base_tenv : ty Symbol.table
-  val base_venv : enventry Symbol.table
+    | FunEntry of {formals: ty list, result: ty, level: Translate.level, label: Temp.label}
+  val base_tenv : ty Symbol.table       (* predefined types *)
+  val base_venv : enventry Symbol.table (* predefined functions *)
 end
 
 (* Now give an implementation *)
@@ -15,8 +15,8 @@ struct
   type access = unit
   type ty = Types.ty
 
-  datatype enventry = VarEntry of {ty: ty}
-    | FunEntry of {formals: ty list, result: ty}
+  datatype enventry = VarEntry of {access: Translate.access, ty: ty}
+    | FunEntry of {formals: ty list, result: ty, level: Translate.level, label: Temp.label}
 
   val base_tenv = Symbol.enter(Symbol.enter(Symbol.empty,
                         Symbol.symbol "int", Types.INT),
