@@ -3,7 +3,7 @@ signature ENV =
 sig
   type access
   type ty
-  datatype enventry = VarEntry of {ty: ty}
+  datatype enventry = VarEntry of {access: Translate.access, ty: ty}
     | FunEntry of {formals: ty list, result: ty}
   val base_tenv : ty Symbol.table
   val base_venv : enventry Symbol.table
@@ -21,7 +21,7 @@ struct
   val base_tenv = Symbol.enter(Symbol.enter(Symbol.empty,
                         Symbol.symbol "int", Types.INT),
                         Symbol.symbol "string", Types.STRING)
-  
+
   val base_venv = Symbol.enter(Symbol.empty,
                                Symbol.symbol "printi",
                                FunEntry {formals = [Types.INT],
