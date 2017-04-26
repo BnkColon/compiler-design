@@ -25,6 +25,7 @@ struct
        checkInt (trexp right, pos);
        {ty=Types.INT, exp=()})
        | trexp (A.IntExp _) = {ty=Types.INT, exp=()}
+       | trexp (A.NilExp) = {ty= Types.NIL, exp=()}
        | trexp (A.StringExp (_,_)) = {ty=Types.STRING, exp=()}
        | trexp _ = {ty=Types.UNIT, exp=ErrorMsg.error 0 "Can't typecheck this yet"}
     in
