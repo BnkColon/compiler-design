@@ -27,7 +27,14 @@ struct
        | trexp (A.IntExp _) = {ty=Types.INT, exp=()}
        | trexp (A.NilExp) = {ty= Types.NIL, exp=()}
        | trexp (A.StringExp (_,_)) = {ty=Types.STRING, exp=()}
+      (* | trexp (A.SeqExp exprs) = trexprs exprs*)
        | trexp _ = {ty=Types.UNIT, exp=ErrorMsg.error 0 "Can't typecheck this yet"}
+
+     (*and trexprs nil = {ty=Types.UNIT, exp=()}
+        | trexprs ((exp, pos)::exprs) = (trexp exp; trexprs exprs) 
+
+     and actual_ty ty = case ty of
+                              Types.Name(sym, refty) => actual_ty*)
     in
       trexp
     end
