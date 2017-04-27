@@ -2,7 +2,6 @@ signature Tiger_TOKENS =
 sig
 type ('a,'b) token
 type svalue
-val LOWPREC:  'a * 'a -> (svalue,'a) token
 val UMINUS:  'a * 'a -> (svalue,'a) token
 val TYPE:  'a * 'a -> (svalue,'a) token
 val VAR:  'a * 'a -> (svalue,'a) token

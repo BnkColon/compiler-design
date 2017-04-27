@@ -1,34 +1,35 @@
 structure A = Absyn
-
-fun makeIf(e1, e2, el, p) =  A.IfExp {test = e1, then' = e2, else' = el, pos = p}
-
 %%
 %term
-    EOF 
+    EOF
   | ID of string
-  | INT of int | STRING of string 
-  | COMMA | COLON | SEMICOLON | LPAREN | RPAREN | LBRACK | RBRACK 
-  | LBRACE | RBRACE | DOT 
+  | INT of int | STRING of string
+  | COMMA | COLON | SEMICOLON | LPAREN | RPAREN | LBRACK | RBRACK
+  | LBRACE | RBRACE | DOT
   | PLUS | MINUS | TIMES | DIVIDE | EQ | NEQ | LT | LE | GT | GE
   | AND | OR | ASSIGN
-  | ARRAY | IF | THEN | ELSE | WHILE | FOR | TO | DO | LET | IN | END | OF 
+  | ARRAY | IF | THEN | ELSE | WHILE | FOR | TO | DO | LET | IN | END | OF
   | BREAK | NIL
   | FUNCTION | VAR | TYPE
   | UMINUS
-  | LOWPREC
 
-%nonterm  exp of A.exp 
+%nonterm  exp of A.exp
   | program of A.exp
-  | seqexp of (A.exp * pos) list
-  | seqList of (A.exp * pos) list
   | lvalue of A.var
+  | vardec of A.dec
+  | tyseq of {name:Symbol.symbol,
+              ty:A.ty,
+              pos:pos} list
+  | tydec of {name:Symbol.symbol, ty:A.ty, pos:pos}
+  | ty of A.ty
   | dec of A.dec
   | declist of A.dec list
-  | tyField of A.field
-  | tyFields of A.field list
-  | tyFieldsList of A.field list
+  | expseq of (A.exp * pos) list
   | explist of A.exp list
-  | explistC of A.exp list
+  | fundec of A.fundec
+  | funseq of A.fundec list
+  | tyfield of A.field
+  | tyfields of A.field list
 
 %pos int
 %verbose
@@ -38,7 +39,7 @@ fun makeIf(e1, e2, el, p) =  A.IfExp {test = e1, then' = e2, else' = el, pos = p
 
 %name Tiger
 
-%keyword WHILE FOR TO BREAK LET IN END FUNCTION VAR TYPE ARRAY IF THEN ELSE 
+%keyword WHILE FOR TO BREAK LET IN END FUNCTION VAR TYPE ARRAY IF THEN ELSE
   DO OF NIL
 
 %prefer THEN ELSE LPAREN
@@ -47,43 +48,53 @@ fun makeIf(e1, e2, el, p) =  A.IfExp {test = e1, then' = e2, else' = el, pos = p
 %value INT (1)
 %value STRING ("")
 
-%nonassoc LOWPREC
-%nonassoc FUNCTION VAR TYPE THEN DO OF ASSIGN
 %nonassoc EQ NEQ LT LE GT GE
 %left PLUS MINUS
 %left TIMES DIVIDE
 %right UMINUS
-%right ELSE 
-%left AND
-%left OR
 
 %%
 
-program : exp (exp)
+program : exp       (exp)
 
 exp: lvalue (A.VarExp lvalue)
-  | MINUS exp %prec UMINUS (A.OpExp {left=A.IntExp ~1, oper=A.TimesOp, right=exp, pos=MINUSleft})
-  | NIL (A.NilExp)
-  | INT (A.IntExp INT)
-  | STRING (A.StringExp (STRING, STRINGleft))
-  | exp MINUS exp (A.OpExp {left=exp1, oper=A.MinusOp, right=exp2, pos=MINUSleft})
-  | exp PLUS exp (A.OpExp {left=exp1, oper=A.PlusOp, right=exp2, pos=PLUSleft})
-  | exp TIMES exp (A.OpExp {left=exp1, oper=A.TimesOp, right=exp2, pos=TIMESleft})
-  | exp DIVIDE exp (A.OpExp {left=exp1, oper=A.DivideOp, right=exp2, pos=DIVIDEleft})
-  | LET declist IN seqexp END (A.LetExp {decs=declist,body=A.SeqExp(seqexp),pos=LETleft})
+  | NIL    (A.NilExp)
+  | INT      (A.IntExp INT)
+  | STRING     (A.StringExp (STRING, STRINGleft))
+
+  | exp PLUS exp     (A.OpExp {left=exp1, oper=A.PlusOp, right=exp2, pos=PLUSleft})
+  | exp MINUS exp    (A.OpExp {left=exp1, oper=A.MinusOp, right=exp2, pos=MINUSleft})
+  | exp TIMES exp    (A.OpExp {left=exp1, oper=A.TimesOp, right=exp2, pos=TIMESleft})
+  | exp DIVIDE exp   (A.OpExp {left=exp1, oper=A.DivideOp, right=exp2, pos=DIVIDEleft})
+
   | lvalue ASSIGN exp (A.AssignExp {var=lvalue, exp=exp, pos=lvalueleft})
-  
-seqexp:                 (nil)
-|  exp seqList          ((exp, expleft) :: seqList)
 
-seqList:                (nil)
-|  SEMICOLON exp seqList  ((exp,expleft) :: seqList)
+(* let *)
+  | LET declist IN END  (A.LetExp {decs=declist, body=A.SeqExp([]), pos=LETleft})
+  | LET declist IN expseq END  (A.LetExp {decs=declist, body=A.SeqExp(expseq), pos=LETleft})
 
+(* lvalues *)
 lvalue: ID (A.SimpleVar(Symbol.symbol ID, IDleft))
 
-dec: VAR ID COLON ID ASSIGN exp (A.VarDec {name=Symbol.symbol ID1, init=exp, pos=VARleft, escape= ref true, typ=SOME (Symbol.symbol ID2, ID2left)})
-  | TYPE ID EQ ID  (A.TypeDec[{name= Symbol.symbol ID1, ty=A.NameTy(Symbol.symbol ID2, ID2left), pos=TYPEleft}])
-  
-declist: dec (dec :: nil)
-  | dec declist (dec :: declist)
+(* declarations *)
+declist: dec  (dec :: nil)
+  | dec declist  (dec :: declist)
 
+dec: vardec (vardec)
+  | tyseq (A.TypeDec tyseq)
+
+vardec: VAR ID ASSIGN exp (A.VarDec {name=Symbol.symbol ID, init=exp,
+                           pos=VARleft, escape= ref true, typ=NONE})
+  | VAR ID COLON ID ASSIGN exp (A.VarDec {name=Symbol.symbol ID1, init=exp,
+                                pos=VARleft, escape= ref true,
+                                typ=SOME (Symbol.symbol ID2, ID2left)})
+
+tyseq: tydec (tydec::nil)
+  | tydec tyseq (tydec::tyseq)
+
+tydec: TYPE ID EQ ty ({name=Symbol.symbol ID, ty=ty, pos=TYPEleft})
+
+ty: ID (A.NameTy (Symbol.symbol ID, IDleft))
+
+expseq: exp ((exp, expleft) :: nil)
+  | exp SEMICOLON expseq ((exp, expleft) :: expseq)
