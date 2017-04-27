@@ -29,8 +29,28 @@ struct
        | trexp (A.NilExp) = {ty= Types.NIL, exp=()}
        | trexp (A.VarExp var) = trvar(var)
        | trexp (A.SeqExp exprs) = trexprs exprs
-       (*| trexp (A.AssignExp {var, exp, pos}) =
-       | trexp (A.LetExp {decs, body, pos})
+       | trexp (A.AssignExp {var, exp, pos}) = 
+            let
+              val {exp=left,  ty=expect} = trvar (var)
+              val {exp=right, ty=actual} = trexp (exp)
+            in
+              if expect <> actual then
+                (ErrorMsg.error pos "assignment mismatch"; {exp=(), ty=Types.UNIT})
+              else
+                {exp=(), ty=Types.UNIT}
+            end
+            
+       (*| trexp (A.LetExp {decs, body, pos}) =
+          let
+            val (venv, tenv, decList, _) =
+              foldl (fn (dec, (v, t, e, l)) => transDec(v, t, dec, break, e, l))
+                (venv, tenv, [], level) decs
+            val {exp=(), ty=bodyTy} = transExp (venv,tenv, break, level) body
+          in
+            {exp=(), ty=bodyTy}
+          end
+
+
        | trexp (A.CallExp {func, args, pos})*)
        | trexp _ = {ty=Types.UNIT, exp=ErrorMsg.error 0 "Can't typecheck this yet"}
      
@@ -50,4 +70,8 @@ struct
   and transDec (venv,tenv,dec) =
     (* you should actually do something here *)
       {tenv=tenv,venv=venv}
+    (* fun trdec (A.VarDec{name, escape, typ, init, pos}) =
+      | trdec (A.FunctionDec[{name, params, result=SOME(rt, rtpos), body, pos}]) =
+      | trdec (A.TypeDec(typedecs)) = *)
+
 end
