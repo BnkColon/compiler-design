@@ -66,50 +66,24 @@ exp: lvalue (A.VarExp lvalue)
   | NIL (A.NilExp)
   | INT (A.IntExp INT)
   | STRING (A.StringExp (STRING, STRINGleft))
-  | ID LPAREN explist RPAREN   (A.CallExp {func= Symbol.symbol ID, args=explist, pos=IDleft})
   | exp MINUS exp (A.OpExp {left=exp1, oper=A.MinusOp, right=exp2, pos=MINUSleft})
   | exp PLUS exp (A.OpExp {left=exp1, oper=A.PlusOp, right=exp2, pos=PLUSleft})
   | exp TIMES exp (A.OpExp {left=exp1, oper=A.TimesOp, right=exp2, pos=TIMESleft})
   | exp DIVIDE exp (A.OpExp {left=exp1, oper=A.DivideOp, right=exp2, pos=DIVIDEleft})
-  | exp EQ exp (A.OpExp {left=exp1, oper=A.EqOp, right=exp2, pos=EQleft})
-  | exp NEQ exp (A.OpExp {left=exp1, oper=A.NeqOp, right=exp2, pos=NEQleft})
-  | exp LT exp (A.OpExp {left=exp1, oper=A.LtOp, right=exp2, pos=LTleft})
-  | exp LE exp (A.OpExp {left=exp1, oper=A.LeOp, right=exp2, pos=LEleft})
-  | exp GT exp (A.OpExp {left=exp1, oper=A.GtOp, right=exp2, pos=GTleft})
-  | exp GE exp (A.OpExp {left=exp1, oper=A.GeOp, right=exp2, pos=GEleft})
-  | exp AND exp (makeIf(exp1, exp2, SOME(A.IntExp(0)), exp1left))
-  | exp OR exp (makeIf(exp1, A.IntExp(1), SOME exp2, exp1left))
   | LET declist IN seqexp END (A.LetExp {decs=declist,body=A.SeqExp(seqexp),pos=LETleft})
-  | IF exp THEN exp ELSE exp (A.IfExp {test=exp1, then'=exp2, else'= SOME exp3, pos=IFleft})
-  | IF exp THEN exp (A.IfExp {test=exp1, then'=exp2, else'=NONE, pos=IFleft})
-  | lvalue ASSIGN exp (A.AssignExp {var=lvalue, exp=exp,pos=ASSIGNleft})
-  | LPAREN seqexp RPAREN (A.SeqExp(seqexp))
-
+  | lvalue ASSIGN exp (A.AssignExp {var=lvalue, exp=exp, pos=lvalueleft})
+  
 seqexp:                 (nil)
 |  exp seqList          ((exp, expleft) :: seqList)
 
 seqList:                (nil)
 |  SEMICOLON exp seqList  ((exp,expleft) :: seqList)
 
-explist: (nil)
-  | exp explistC (exp :: explistC)
-
-explistC: (nil)
-  | COMMA exp explistC (exp :: explistC)  
-
 lvalue: ID (A.SimpleVar(Symbol.symbol ID, IDleft))
 
-dec: VAR ID COLON ID ASSIGN exp (A.VarDec {name=Symbol.symbol ID1, escape= ref true, typ= SOME (Symbol.symbol ID2, ID2left), init=exp,pos=VARleft})
+dec: VAR ID COLON ID ASSIGN exp (A.VarDec {name=Symbol.symbol ID1, init=exp, pos=VARleft, escape= ref true, typ=SOME (Symbol.symbol ID2, ID2left)})
   | TYPE ID EQ ID  (A.TypeDec[{name= Symbol.symbol ID1, ty=A.NameTy(Symbol.symbol ID2, ID2left), pos=TYPEleft}])
-  | FUNCTION ID LPAREN tyFields RPAREN COLON ID EQ exp (A.FunctionDec[{name= Symbol.symbol ID1, params= tyFields, result= SOME (Symbol.symbol ID2, ID2left), body= exp, pos=FUNCTIONleft}])
-
+  
 declist: dec (dec :: nil)
   | dec declist (dec :: declist)
 
-tyField: ID COLON ID ({name = Symbol.symbol ID1, escape= ref true, typ= Symbol.symbol ID2, pos= ID1left})
-
-tyFields:            (nil)
-  | tyField tyFieldsList  (tyField :: tyFieldsList)
-
-tyFieldsList:         (nil)
-  | COMMA tyField tyFieldsList   (tyField :: tyFieldsList)

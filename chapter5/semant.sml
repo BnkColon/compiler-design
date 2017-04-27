@@ -48,10 +48,7 @@ struct
             val {exp=(), ty=bodyTy} = transExp (venv,tenv, break, level) body
           in
             {exp=(), ty=bodyTy}
-          end
-
-
-       | trexp (A.CallExp {func, args, pos})*)
+          end*)
        | trexp _ = {ty=Types.UNIT, exp=ErrorMsg.error 0 "Can't typecheck this yet"}
      
      and trexprs nil = {ty=Types.UNIT, exp=()}
@@ -71,7 +68,6 @@ struct
     (* you should actually do something here *)
       {tenv=tenv,venv=venv}
     (* fun trdec (A.VarDec{name, escape, typ, init, pos}) =
-      | trdec (A.FunctionDec[{name, params, result=SOME(rt, rtpos), body, pos}]) =
       | trdec (A.TypeDec(typedecs)) = *)
 
 end
