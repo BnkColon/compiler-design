@@ -1,6 +1,6 @@
 let
- var a := 5
- var b := "Hello"
+	var a := 5
+	var b := "Hello"
 in
- a + b
+	a + b
 end

@@ -41,18 +41,16 @@ struct
             end
             
        (*| trexp (A.LetExp {decs, body, pos}) =
-          let
-            val (venv, tenv, decList, _) =
-              foldl (fn (dec, (v, t, e, l)) => transDec(v, t, dec, break, e, l))
-                (venv, tenv, [], level) decs
-            val {exp=(), ty=bodyTy} = transExp (venv,tenv, break, level) body
+          let 
+            val (venv=venv', tenv=tenv') = transDec(venv, tenv, decs)
           in
-            {exp=(), ty=bodyTy}
+            transExp(venv', tenv') body
           end*)
+
        | trexp _ = {ty=Types.UNIT, exp=ErrorMsg.error 0 "Can't typecheck this yet"}
      
      and trexprs nil = {ty=Types.UNIT, exp=()}
-        (*| trexprs [(exp, pos)] = trexpr exp*)
+       (* | trexprs [(exp, pos)] = trexpr exp*)
         | trexprs ((exp, pos)::exprs) = (trexp exp; trexprs exprs)
 
      and actual_ty ty = case ty of
