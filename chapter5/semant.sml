@@ -13,7 +13,7 @@ struct
   fun checkInt ({ty=Types.INT, exp=_}, pos) = ()
   | checkInt ({ty=_,exp=_},pos) = ErrorMsg.error pos "integer required"
 
-  fun typelookup tenv n pos= 
+  (*fun typelookup tenv n pos= 
     let 
       val result=Symbol.look (tenv, n)
     in  
@@ -27,7 +27,7 @@ struct
       fun recordtys(fields)= map (fn{name, escape, typ, pos}=>
             (case SOME(typelookup tenv typ pos) of 
                SOME t => (name, t)
-             | NONE => (name, Types.UNIT))) fields
+             | _ => (name, Types.UNIT))) fields
       fun checkdups(h::l) = 
             (List.exists (fn {name, escape, typ, pos}=> 
                 if (#name h)=name then
@@ -42,7 +42,7 @@ struct
         A.NameTy (n, pos) => typelookup tenv n pos
       | A.RecordTy fields => (checkdups(fields);Types.RECORD (recordtys fields, ref()))
       | A.ArrayTy (n,pos) => Types.ARRAY(typelookup tenv n pos, ref())
-    end
+    end*)
 
   fun transProg (exp:A.exp) : unit =
     let
@@ -71,12 +71,12 @@ struct
                 {exp=(), ty=Types.UNIT}
             end
             
-       | trexp (A.LetExp {decs, body, pos}) =
+       (*| trexp (A.LetExp {decs, body, pos}) =
           let 
-            val (venv=venv', tenv=tenv') = transDec(venv, tenv, decs)
+            val (venv=venv', tenv=tenv') = transDecs(venv, tenv, decs)
           in
             transExp(venv', tenv') body
-          end
+          end*)
 
        | trexp _ = {ty=Types.UNIT, exp=ErrorMsg.error 0 "Can't typecheck this yet"}
      
@@ -93,22 +93,23 @@ struct
     in
       trexp
     end
-  and transDec (venv:venv, tenv:tenv, dec) =
-    let
-      fun trdec (A.VarDec{name, escape, typ=NONE, init, pos}) =
+  and transDec (venv:venv, tenv:tenv, decs) =
+     {tenv=tenv,venv=venv}
+  (*  let
+      fun trdec (A.VarDec{name, escape, typ=SOME(id,pos), init, pos}) =
         let
           val {exp,ty} = transExp(venv,tenv,init)
         in
           {tenv=tenv, venv=Symbol.enter(venv,name, Env.VarEntry{ty=ty})}
-        end
-      | trdec (A.TypeDec[{name,ty, pos}]) = {venv=venv, tenv=Symbol.enter(tenv,name,transTy(tenv,ty))}
+        end*)
+      (*| trdec (A.TypeDec[{name,ty, pos}]) = {venv=venv, tenv=Symbol.enter(tenv,name,transTy(tenv,ty))}*)
       (*| trdec (venv,tenv,A.FunctionDec[(name,params,body,pos,result=SOME(rt, pos))]) =
         let
           val SOME(result_ty) = value
         in
           body
-        end*)
+        end
     in
       trdec
-    end    
+    end    *)
 end
